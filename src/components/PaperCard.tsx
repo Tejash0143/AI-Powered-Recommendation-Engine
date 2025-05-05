@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, Tag, FileText } from 'lucide-react';
+import { BookOpen, Users, Tag, FileText, Image } from 'lucide-react';
 import { Paper } from '../types';
 
 interface PaperCardProps {
@@ -9,18 +9,42 @@ interface PaperCardProps {
   isSaved: boolean;
 }
 
+// Helper function to get placeholder image based on paper tags
+const getPlaceholderImage = (paper: Paper): string => {
+  if (!paper.tags || paper.tags.length === 0) {
+    return 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=500&h=300';
+  }
+  
+  const tag = paper.tags[0].toLowerCase();
+  
+  if (tag.includes('transformer') || tag.includes('vision transformer')) {
+    return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&h=300';
+  } else if (tag.includes('object') || tag.includes('detection')) {
+    return 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=500&h=300';
+  } else if (tag.includes('3d') || tag.includes('scene')) {
+    return 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=500&h=300';
+  } else if (tag.includes('medical') || tag.includes('segmentation')) {
+    return 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=500&h=300';
+  } else if (tag.includes('contrastive') || tag.includes('self-supervised')) {
+    return 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=500&h=300';
+  } else {
+    return 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=500&h=300';
+  }
+};
+
 const PaperCard: React.FC<PaperCardProps> = ({ paper, onSave, isSaved }) => {
+  // Use the paper's imageUrl if available, otherwise use a placeholder based on tags
+  const imageUrl = paper.imageUrl || getPlaceholderImage(paper);
+  
   return (
     <div className="paper-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
-      {paper.imageUrl && (
-        <div className="h-40 overflow-hidden">
-          <img 
-            src={paper.imageUrl} 
-            alt={paper.title} 
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
+      <div className="h-40 overflow-hidden">
+        <img 
+          src={imageUrl} 
+          alt={paper.title} 
+          className="w-full h-full object-cover"
+        />
+      </div>
       
       <div className="p-5">
         <div className="flex justify-between items-start">

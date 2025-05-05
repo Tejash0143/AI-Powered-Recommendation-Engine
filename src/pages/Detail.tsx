@@ -23,21 +23,25 @@ const Detail = () => {
       setSavedPaperIds(new Set(JSON.parse(savedPapers)));
     }
     
-    // Find the requested paper
-    const foundPaper = papers.find(p => p.id === id);
+    // Find the requested paper - ensure ID is definitely a string
+    const paperId = id || '';
+    const foundPaper = papers.find(p => p.id === paperId);
+    
     if (foundPaper) {
       setPaper(foundPaper);
     } else {
+      console.error(`Paper with ID "${paperId}" not found`);
       toast({
         title: "Paper not found",
         description: "The requested paper could not be found",
         variant: "destructive",
       });
-      navigate('/');
+      // Navigate to home only after toast is shown
+      setTimeout(() => navigate('/'), 1000);
     }
     
     setIsLoading(false);
-  }, [id, navigate]);
+  }, [id, navigate, toast]);
 
   // Handle saving papers
   const handleSavePaper = (paper: Paper) => {

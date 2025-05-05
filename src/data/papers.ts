@@ -1,4 +1,3 @@
-
 import { Paper } from '../types';
 
 export const papers: Paper[] = [
@@ -16,7 +15,8 @@ export const papers: Paper[] = [
     citations: 145,
     tags: ['vision transformer', 'small datasets', 'transfer learning'],
     url: 'https://example.com/paper1',
-    imageUrl: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=500&h=300'
+    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&h=300',
+    pdfUrl: 'https://example.com/paper1.pdf'
   },
   {
     id: '2',
@@ -31,7 +31,8 @@ export const papers: Paper[] = [
     citations: 89,
     tags: ['object detection', 'real-time', 'sparse attention'],
     url: 'https://example.com/paper2',
-    imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=500&h=300'
+    imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=500&h=300',
+    pdfUrl: 'https://example.com/paper2.pdf'
   },
   {
     id: '3',
@@ -46,7 +47,8 @@ export const papers: Paper[] = [
     citations: 112,
     tags: ['medical imaging', 'segmentation', 'self-supervised learning'],
     url: 'https://example.com/paper3',
-    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=500&h=300'
+    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=500&h=300',
+    pdfUrl: 'https://example.com/paper3.pdf'
   },
   {
     id: '4',
@@ -61,7 +63,8 @@ export const papers: Paper[] = [
     citations: 320,
     tags: ['contrastive learning', 'self-supervised', 'representation learning'],
     url: 'https://example.com/paper4',
-    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&h=300'
+    imageUrl: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=500&h=300',
+    pdfUrl: 'https://example.com/paper4.pdf'
   },
   {
     id: '5',
@@ -76,7 +79,8 @@ export const papers: Paper[] = [
     citations: 76,
     tags: ['3D reconstruction', 'neural implicit fields', 'scene understanding'],
     url: 'https://example.com/paper5',
-    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=500&h=300'
+    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=500&h=300',
+    pdfUrl: 'https://example.com/paper5.pdf'
   }
 ];
 
