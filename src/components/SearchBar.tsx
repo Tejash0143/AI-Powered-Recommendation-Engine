@@ -21,7 +21,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search computer vision papers, authors, or topics..."
+          placeholder="Search arXiv for computer vision papers, e.g., 'transformer', 'object detection'..."
           className="w-full py-3 px-5 pr-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-scholar-blue focus:border-transparent shadow-sm"
         />
         <button

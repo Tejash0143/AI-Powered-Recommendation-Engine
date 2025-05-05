@@ -1,20 +1,48 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import SearchBar from '@/components/SearchBar';
 import FilterBar from '@/components/FilterBar';
 import PaperCard from '@/components/PaperCard';
 import { Brain } from 'lucide-react';
 import { Paper } from '@/types';
-import { papers, filterCategories } from '@/data/papers';
+import { papers as mockPapers, filterCategories } from '@/data/papers';
+import { fetchArxivPapers } from '@/services/arxivService';
+import { 
+  Pagination,
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from '@/components/ui/pagination';
 
 const Index = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredPapers, setFilteredPapers] = useState<Paper[]>(papers);
+  const [filteredPapers, setFilteredPapers] = useState<Paper[]>([]);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [savedPaperIds, setSavedPaperIds] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const resultsPerPage = 10;
+  
+  // Fetch arXiv papers with React Query
+  const { 
+    data: arxivPapers, 
+    isLoading, 
+    isError, 
+    error 
+  } = useQuery({
+    queryKey: ['arxivPapers', searchQuery, currentPage],
+    queryFn: () => fetchArxivPapers(
+      searchQuery, 
+      resultsPerPage, 
+      (currentPage - 1) * resultsPerPage
+    ),
+    refetchOnWindowFocus: false,
+  });
   
   // Load saved papers from localStorage on component mount
   useEffect(() => {
@@ -24,23 +52,28 @@ const Index = () => {
     }
   }, []);
 
+  // Update filtered papers when arXiv papers change
+  useEffect(() => {
+    if (arxivPapers) {
+      setFilteredPapers(arxivPapers);
+    } else {
+      // Use mock data until arXiv data loads
+      setFilteredPapers(mockPapers);
+    }
+  }, [arxivPapers]);
+
   // Handle search
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (!query.trim()) {
-      setFilteredPapers(papers);
+    setCurrentPage(1);
+    
+    if (!query.trim() && arxivPapers) {
+      setFilteredPapers(arxivPapers);
       return;
     }
     
-    const lowerQuery = query.toLowerCase();
-    const results = papers.filter(paper => 
-      paper.title.toLowerCase().includes(lowerQuery) ||
-      paper.abstract.toLowerCase().includes(lowerQuery) ||
-      paper.authors.some(author => author.name.toLowerCase().includes(lowerQuery)) ||
-      paper.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
-    );
-    
-    setFilteredPapers(results);
+    // The actual search will be handled by the useQuery hook
+    // which will refetch with the new search query
   };
 
   // Handle filter changes
@@ -55,21 +88,30 @@ const Index = () => {
     
     setActiveFilters(newFilters);
     
-    // Apply filters if there are any active
+    // Apply filters if there are any active and we have arXiv papers
+    const papersToFilter = arxivPapers || mockPapers;
+    
     if (newFilters.size === 0) {
-      handleSearch(searchQuery); // Reset to search results only
+      setFilteredPapers(papersToFilter);
       return;
     }
     
     // Filter papers based on active filters
-    const results = papers.filter(paper => {
-      // Filter by conference
+    const results = papersToFilter.filter(paper => {
+      // Filter by conference/journal (arxiv vs others)
       if ([...newFilters].some(filter => filter.startsWith('conference-'))) {
         const conferenceFilters = [...newFilters].filter(f => f.startsWith('conference-'));
-        if (conferenceFilters.length > 0 && paper.conference) {
-          const matches = conferenceFilters.some(filter => 
-            filter.split('-')[1].toLowerCase() === paper.conference?.toLowerCase()
-          );
+        if (conferenceFilters.length > 0) {
+          const isArxiv = paper.journal?.toLowerCase() === 'arxiv' || 
+                         paper.arxivId != null;
+          
+          const matches = conferenceFilters.some(filter => {
+            const conf = filter.split('-')[1].toLowerCase();
+            if (conf === 'arxiv') return isArxiv;
+            return paper.conference?.toLowerCase() === conf || 
+                   paper.journal?.toLowerCase() === conf;
+          });
+          
           if (!matches) return false;
         }
       }
@@ -84,13 +126,14 @@ const Index = () => {
         }
       }
       
-      // Filter by topic
+      // Filter by topic/category
       if ([...newFilters].some(filter => filter.startsWith('topic-'))) {
         const topicFilters = [...newFilters].filter(f => f.startsWith('topic-'));
         if (topicFilters.length > 0) {
           const matches = topicFilters.some(filter => {
             const topic = filter.split('-')[1].replace(/-/g, ' ').toLowerCase();
-            return paper.tags.some(tag => tag.toLowerCase().includes(topic));
+            return paper.tags.some(tag => tag.toLowerCase().includes(topic)) ||
+                  paper.primaryCategory?.toLowerCase().includes(topic);
           });
           if (!matches) return false;
         }
@@ -99,19 +142,7 @@ const Index = () => {
       return true;
     });
     
-    // Apply search query if present
-    if (searchQuery.trim()) {
-      const lowerQuery = searchQuery.toLowerCase();
-      const searchResults = results.filter(paper => 
-        paper.title.toLowerCase().includes(lowerQuery) ||
-        paper.abstract.toLowerCase().includes(lowerQuery) ||
-        paper.authors.some(author => author.name.toLowerCase().includes(lowerQuery)) ||
-        paper.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
-      );
-      setFilteredPapers(searchResults);
-    } else {
-      setFilteredPapers(results);
-    }
+    setFilteredPapers(results);
   };
 
   // Handle saving papers
@@ -136,6 +167,11 @@ const Index = () => {
     localStorage.setItem('savedPapers', JSON.stringify([...newSavedPaperIds]));
   };
 
+  // Handle pagination
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -147,7 +183,7 @@ const Index = () => {
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">CV Scholar</h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover the latest research papers in computer vision, machine learning, and AI
+            Discover the latest research papers in computer vision from arXiv and beyond
           </p>
         </div>
         
@@ -164,7 +200,36 @@ const Index = () => {
           </div>
           
           <div className="md:col-span-3">
-            {filteredPapers.length === 0 ? (
+            {isLoading && (
+              <div className="text-center py-12">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-scholar-blue border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+                <p className="mt-4 text-gray-600">Loading papers from arXiv...</p>
+              </div>
+            )}
+            
+            {isError && (
+              <div className="text-center py-12 bg-white rounded-lg shadow">
+                <svg 
+                  className="mx-auto h-12 w-12 text-red-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">Error loading papers</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {error instanceof Error ? error.message : "Failed to fetch papers from arXiv. Please try again."}
+                </p>
+              </div>
+            )}
+            
+            {!isLoading && !isError && filteredPapers.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg shadow">
                 <svg 
                   className="mx-auto h-12 w-12 text-gray-400"
@@ -184,13 +249,15 @@ const Index = () => {
                   Try adjusting your search or filter criteria.
                 </p>
               </div>
-            ) : (
+            ) : !isLoading && (
               <>
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-semibold text-gray-800">
-                    {searchQuery || activeFilters.size > 0 
-                      ? `Results (${filteredPapers.length})` 
-                      : 'Latest Research Papers'}
+                    {searchQuery 
+                      ? `Results for "${searchQuery}" (${filteredPapers.length})` 
+                      : activeFilters.size > 0 
+                        ? `Filtered Results (${filteredPapers.length})` 
+                        : 'Latest arXiv Papers'}
                   </h2>
                 </div>
                 
@@ -203,6 +270,39 @@ const Index = () => {
                       isSaved={savedPaperIds.has(paper.id)}
                     />
                   ))}
+                </div>
+                
+                <div className="mt-8">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                          className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                        />
+                      </PaginationItem>
+                      
+                      {[...Array(5)].map((_, i) => {
+                        const pageNumber = i + 1;
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink 
+                              isActive={pageNumber === currentPage}
+                              onClick={() => handlePageChange(pageNumber)}
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => handlePageChange(currentPage + 1)}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               </>
             )}

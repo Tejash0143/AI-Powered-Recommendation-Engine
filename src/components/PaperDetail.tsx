@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Paper } from '../types';
-import { Calendar, Award, User, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
+import { Calendar, Award, User, Bookmark, BookmarkCheck, ExternalLink, FileText } from 'lucide-react';
 
 interface PaperDetailProps {
   paper: Paper;
@@ -35,10 +35,13 @@ const PaperDetail: React.FC<PaperDetailProps> = ({ paper, onSave, isSaved }) => 
           })}</span>
         </div>
         
-        {(paper.conference || paper.journal) && (
+        {(paper.conference || paper.journal || paper.arxivId) && (
           <div className="flex items-center">
             <Award className="h-4 w-4 mr-1 text-scholar-blue" />
-            <span>{paper.conference || paper.journal}</span>
+            <span>
+              {paper.conference || paper.journal || (paper.arxivId ? 'arXiv' : '')}
+              {paper.arxivId ? ` (${paper.arxivId})` : ''}
+            </span>
           </div>
         )}
         
@@ -48,6 +51,13 @@ const PaperDetail: React.FC<PaperDetailProps> = ({ paper, onSave, isSaved }) => 
           </svg>
           <span>{paper.citations} citations</span>
         </div>
+        
+        {paper.primaryCategory && (
+          <div className="flex items-center">
+            <Tag className="h-4 w-4 mr-1 text-scholar-blue" />
+            <span>Primary: {paper.primaryCategory}</span>
+          </div>
+        )}
       </div>
       
       <div className="mb-8">
@@ -100,15 +110,27 @@ const PaperDetail: React.FC<PaperDetailProps> = ({ paper, onSave, isSaved }) => 
         </div>
       </div>
       
-      <div>
+      <div className="flex flex-wrap gap-4">
+        {paper.pdfUrl && (
+          <a 
+            href={paper.pdfUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-4 py-2 rounded-md bg-scholar-blue text-white hover:bg-scholar-navy transition-colors"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            View PDF
+          </a>
+        )}
+        
         <a 
           href={paper.url} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="inline-flex items-center px-4 py-2 rounded-md bg-scholar-blue text-white hover:bg-scholar-navy transition-colors"
+          className="inline-flex items-center px-4 py-2 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
         >
           <ExternalLink className="h-4 w-4 mr-2" />
-          View Original Paper
+          View on {paper.arxivId ? 'arXiv' : 'Original Source'}
         </a>
       </div>
     </div>

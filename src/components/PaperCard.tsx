@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, Tag } from 'lucide-react';
+import { BookOpen, Users, Tag, FileText } from 'lucide-react';
 import { Paper } from '../types';
 
 interface PaperCardProps {
@@ -83,12 +83,26 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, onSave, isSaved }) => {
             })}
           </span>
           
-          <span className="flex items-center">
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-            </svg>
-            {paper.citations} citations
-          </span>
+          <div className="flex items-center">
+            {paper.pdfUrl && (
+              <a 
+                href={paper.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-scholar-blue hover:underline flex items-center mr-3"
+              >
+                <FileText className="h-3 w-3 mr-1" />
+                PDF
+              </a>
+            )}
+            
+            <span className="flex items-center">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              {paper.citations} {paper.citations === 1 ? 'citation' : 'citations'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
