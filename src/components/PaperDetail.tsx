@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { Paper } from '../types';
-import { Calendar, Award, User, Bookmark, BookmarkCheck, ExternalLink, FileText } from 'lucide-react';
+import { Calendar, Award, User, Bookmark, BookmarkCheck, ExternalLink, FileText, Tag } from 'lucide-react';
 
 interface PaperDetailProps {
   paper: Paper;
